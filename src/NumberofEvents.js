@@ -4,7 +4,7 @@ import React, { Component } from 'react';
 class NumberofEvents extends Component {
 
   state = {
-    eventsToShow: 32
+    eventsToShow: 50
   }
 
   handleChange = (event) => {
@@ -15,7 +15,7 @@ class NumberofEvents extends Component {
       });
     } else {
       this.setState({
-        eventsToShow: 32
+        eventsToShow: 50
       });
     }
   }
