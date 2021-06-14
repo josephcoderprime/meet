@@ -1,73 +1,63 @@
+import { loadFeature, defineFeature } from 'jest-cucumber'
+import { mount } from 'enzyme'
+import { mockData } from '../mock-data/mock-data'
 
-import React from 'react';
-import { loadFeature, defineFeature } from 'jest-cucumber';
-import { mount } from 'enzyme';
-import App from '../App';
-import { mockData } from '../mock-data';
-import Event from '../Event';
+import App from '../components/app/App'
 
-const feature = loadFeature('./src/features/showHIdeAnEventsDetails.feature');
+const feature = loadFeature('./src/features/showHideAnEventsDetails.feature')
 
 defineFeature(feature, test => {
   test('An event element is collapsed by default', ({ given, when, then }) => {
-    given('the user has just logged in', () => {
+    let AppWrapper;
+    given('the main page is opened', async () => {
+      AppWrapper = await mount(<App />);
     });
 
-    let AppWrapper
-    when('the user opens an app', () => {
-      AppWrapper = mount(<App />);
+    when('the user gets the list of events', () => {
+      AppWrapper.update()
     });
 
-    then('each event has a show more button to expand the element revealing more details', () => {
+    then('the events should be collapsed by default', () => {
       AppWrapper.update();
-      expect(AppWrapper.find('.details-btn')).toHaveLength(mockData.length);
+      expect(AppWrapper.find('.event')).toHaveLength(mockData.length)
     });
   });
 
   test('User can expand an event to see its details', ({ given, when, then }) => {
     let AppWrapper;
-    given('that the user is on the events page', () => {
-      AppWrapper = mount(<App />);
-    });
-
-    when('the user clicks on show more details button', () => {
-      AppWrapper.update();
-      const EventWrapper = AppWrapper.find(Event)
-      /* Jest - Enzyme/Cucumber onClick glitch due to no onMouseDown support. Created work around involving setting the state manually rather than expecting a simulated click.*/
-      AppWrapper.find('.details-btn').at(0).simulate('click');
-      EventWrapper.at(0).setState({ showMore: true });
-    });
-
-    then('the event card expands revealing more detail', () => {
-      AppWrapper.update();
-      const EventWrapper = AppWrapper.find(Event);
-      const eventDetails = EventWrapper.find('.description').at(0);
-      expect(eventDetails.text()).not.toBeNull()
-    });
-  });
-
-  test('User can collapse an event to hide its details', ({ given, when, then }) => {
-    let AppWrapper;
-    let EventWrapper;
-    given('that the user has clicked on a show more button on the event card', async () => {
+    given('the user chose an event', async () => {
       AppWrapper = await mount(<App />);
-      AppWrapper.update();
-      EventWrapper = AppWrapper.find(Event);
-      EventWrapper.at(0).setState({ showMore: true });
     });
 
-    when('the user clicks on the hide details button on the event card', () => {
-      AppWrapper.update();
-      EventWrapper = AppWrapper.find(Event)
-      AppWrapper.find('.details-btn').at(0).simulate('click');
-      EventWrapper.at(0).setState({ showMore: false });
+    when('the user clicks on “see events details” button', () => {
+      AppWrapper.update()
+      AppWrapper.find('.event button').at(0).simulate('click')
     });
 
-    then('revealed details hide and the expanded UI shrinks', () => {
-      AppWrapper.update();
-      EventWrapper = AppWrapper.find(Event);
-      const eventDetails = EventWrapper.find('.description').at(0);
-      expect(eventDetails.text()).toBe("")
+    then('they should get a details box showing the details of the specific event', () => {
+      const details = AppWrapper.find('.event').at(0).find('.display-none')
+      expect(details).toHaveLength(0)
+      AppWrapper.unmount();
     });
   });
-});
+
+  test('User can collapse an event to hide its details.', ({ given, when, then }) => {
+    let AppWrapper;
+    given('the user already got the details he wanted', async () => {
+      AppWrapper = await mount(<App />);
+      AppWrapper.update()
+      AppWrapper.find('.event button').at(0).simulate('click')
+    });
+
+    when('the user clicks on collapse event details', () => {
+      AppWrapper.find('.event button').at(0).simulate('click')
+    });
+
+    then('the event should collapse and hide the details', () => {
+      const details = AppWrapper.find('.event').at(0).find('.display-none')
+      expect(details).toHaveLength(1)
+      AppWrapper.unmount();
+    });
+  });
+
+})
